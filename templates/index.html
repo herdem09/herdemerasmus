@@ -23,6 +23,32 @@
             text-align: center;
             color: #2c3e50;
         }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        .user-info {
+            display: flex;
+            align-items: center;
+        }
+        .logout-btn {
+            margin-left: 15px;
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .logout-btn:hover {
+            background-color: #c0392b;
+        }
         .dashboard {
             display: flex;
             flex-wrap: wrap;
@@ -105,11 +131,47 @@
             margin-top: 20px;
             color: #7f8c8d;
         }
+        .flash-message {
+            background-color: #d4edda;
+            color: #155724;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .api-key-section {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            border: 1px solid #e9ecef;
+        }
+        .api-key-display {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #e9ecef;
+            border-radius: 5px;
+            font-family: monospace;
+            word-break: break-all;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Akıllı Ev Kontrol Sistemi</h1>
+        <div class="header">
+            <h1>Akıllı Ev Kontrol Sistemi</h1>
+            <div class="user-info">
+                <span>Hoş geldiniz, {{ session.username }}</span>
+                <a href="/logout" class="logout-btn">Çıkış Yap</a>
+            </div>
+        </div>
+        
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="flash-message">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
         
         <!-- Dashboard - Tüm Değişkenler -->
         <h2>Sistem Durumu</h2>
@@ -145,6 +207,10 @@
             <div class="stat-item">
                 <div class="stat-title">Ampul</div>
                 <div class="stat-value" id="ampul-value">{{ "Açık" if veri.ampul else "Kapalı" }}</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-title">Hareket</div>
+                <div class="stat-value" id="hareket-value">{{ "Algılandı" if veri.hareket_algilandi else "Algılanmadı" }}</div>
             </div>
         </div>
         
@@ -208,6 +274,12 @@
                 </div>
                 
                 <div class="control-item">
+                    <div class="control-title">Kapı Oto Kontrol</div>
+                    <button onclick="updateValue('kapi_oto', true)" id="kapi-oto-on-button">Aç</button>
+                    <button onclick="updateValue('kapi_oto', false)" id="kapi-oto-off-button">Kapat</button>
+                </div>
+                
+                <div class="control-item">
                     <div class="control-title">Sıcaklık1 (Isıtıcı Eşiği)</div>
                     <div class="temp-controls">
                         <button onclick="adjustTemp('sicaklik1', -1)">-</button>
@@ -233,7 +305,21 @@
                         <button onclick="adjustTemp('sicaklik3', 1)">+</button>
                     </div>
                 </div>
+                
+                <!-- Hareket Sensörü Test Butonu -->
+                <div class="control-item">
+                    <div class="control-title">Hareket Sensörü Test</div>
+                    <button onclick="updateValue('hareket_algilandi', true)" id="hareket-test-button">Hareket Algıla</button>
+                </div>
             </div>
+        </div>
+        
+        <!-- API Anahtarı Görüntüleme -->
+        <div class="api-key-section">
+            <h3>ESP Cihazı API Anahtarı</h3>
+            <p>ESP cihazınızı bu sistem ile güvenli bir şekilde haberleştirmek için aşağıdaki API anahtarını kullanabilirsiniz:</p>
+            <button onclick="getApiKey()" id="api-key-button">API Anahtarını Göster</button>
+            <div id="api-key-display" class="api-key-display" style="display: none;"></div>
         </div>
         
         <div class="status" id="status-message">Sistem hazır</div>
@@ -256,6 +342,7 @@
             document.getElementById('kapi-value').textContent = data.kapi ? 'Açık' : 'Kapalı';
             document.getElementById('perde-value').textContent = data.perde ? 'Açık' : 'Kapalı';
             document.getElementById('ampul-value').textContent = data.ampul ? 'Açık' : 'Kapalı';
+            document.getElementById('hareket-value').textContent = data.hareket_algilandi ? 'Algılandı' : 'Algılanmadı';
             
             // Sıcaklık değerleri
             document.getElementById('sicaklik1-value').textContent = data.sicaklik1;
@@ -270,6 +357,7 @@
             updateButtonStates('ampul', data.ampul);
             updateButtonStates('sicaklik_oto', data.sicaklik_oto);
             updateButtonStates('isik_oto', data.isik_oto);
+            updateButtonStates('kapi_oto', data.kapi_oto);
             
             // Sıcaklık oto kontrolü açıkken ilgili butonları devre dışı bırak
             const sicaklikKontrolButtons = ['vantilator', 'pencere', 'isitici'];
@@ -298,6 +386,14 @@
                     offButton.classList.remove('disabled');
                 }
             });
+            
+            // Kapı oto kontrolü açıkken kapı butonunu devre dışı bırak
+            const kapiButton = document.getElementById('kapi-button');
+            if (data.kapi_oto) {
+                kapiButton.classList.add('disabled');
+            } else {
+                kapiButton.classList.remove('disabled');
+            }
         }
         
         // Buton durumlarını güncelle
@@ -329,6 +425,12 @@
             if ((key === 'perde' || key === 'ampul') && 
                 document.getElementById('isik-oto-on-button').classList.contains('active')) {
                 setStatus('Işık otomatik kontrol açıkken bu değer değiştirilemez');
+                return;
+            }
+            
+            if (key === 'kapi' && 
+                document.getElementById('kapi-oto-on-button').classList.contains('active')) {
+                setStatus('Kapı otomatik kontrol açıkken manuel olarak açılamaz');
                 return;
             }
             
@@ -373,6 +475,26 @@
             .catch(error => {
                 console.error('Hata:', error);
                 setStatus('Güncelleme başarısız oldu');
+            });
+        }
+        
+        // API anahtarı gösterme fonksiyonu
+        function getApiKey() {
+            fetch('/api/get-api-key')
+            .then(response => response.json())
+            .then(data => {
+                if (data.api_key) {
+                    const apiKeyDisplay = document.getElementById('api-key-display');
+                    apiKeyDisplay.textContent = data.api_key;
+                    apiKeyDisplay.style.display = 'block';
+                    setStatus('API anahtarı gösteriliyor');
+                } else {
+                    setStatus('API anahtarı alınamadı: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Hata:', error);
+                setStatus('API anahtarı alınamadı');
             });
         }
         
