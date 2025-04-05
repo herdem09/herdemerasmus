@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Akıllı Ev Kontrol Sistemi</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+        }
+        .dashboard {
+            display: flex;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #ecf0f1;
+            border-radius: 5px;
+        }
+        .stat-item {
+            flex: 1;
+            min-width: 150px;
+            padding: 10px;
+            margin: 5px;
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .stat-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #7f8c8d;
+        }
+        .stat-value {
+            font-size: 18px;
+            color: #2c3e50;
+        }
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+        }
+        .control-panel {
+            flex: 1;
+            min-width: 300px;
+            margin: 10px;
+            padding: 15px;
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .control-item {
+            margin-bottom: 15px;
+        }
+        .control-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #2c3e50;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-right: 5px;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        button.active {
+            background-color: #27ae60;
+        }
+        button.disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+        }
+        .temp-controls {
+            display: flex;
+            align-items: center;
+        }
+        .temp-value {
+            margin: 0 10px;
+            font-weight: bold;
+            width: 30px;
+            text-align: center;
+        }
+        .status {
+            padding: 10px;
+            text-align: center;
+            margin-top: 20px;
+            color: #7f8c8d;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Akıllı Ev Kontrol Sistemi</h1>
+        
+        <!-- Dashboard - Tüm Değişkenler -->
+        <h2>Sistem Durumu</h2>
+        <div class="dashboard">
+            <div class="stat-item">
+                <div class="stat-title">Sıcaklık</div>
+                <div class="stat-value" id="sicaklik-value">{{ veri.sicaklik }}°C</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-title">Işık</div>
+                <div class="stat-value" id="isik-value">{{ veri.isik }}</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-title">Vantilatör</div>
+                <div class="stat-value" id="vantilator-value">{{ "Açık" if veri.vantilator else "Kapalı" }}</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-title">Pencere</div>
+                <div class="stat-value" id="pencere-value">{{ "Açık" if veri.pencere else "Kapalı" }}</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-title">Isıtıcı</div>
+                <div class="stat-value" id="isitici-value">{{ "Açık" if veri.isitici else "Kapalı" }}</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-title">Kapı</div>
+                <div class="stat-value" id="kapi-value">{{ "Açık" if veri.kapi else "Kapalı" }}</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-title">Perde</div>
+                <div class="stat-value" id="perde-value">{{ "Açık" if veri.perde else "Kapalı" }}</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-title">Ampul</div>
+                <div class="stat-value" id="ampul-value">{{ "Açık" if veri.ampul else "Kapalı" }}</div>
+            </div>
+        </div>
+        
+        <!-- Kontrol Paneli -->
+        <h2>Kontrol Paneli</h2>
+        <div class="controls">
+            <!-- Cihaz Kontrolleri -->
+            <div class="control-panel">
+                <h3>Cihaz Kontrolleri</h3>
+                
+                <div class="control-item">
+                    <div class="control-title">Kapı</div>
+                    <button onclick="updateValue('kapi', true)" id="kapi-button">Aç</button>
+                </div>
+                
+                <div class="control-item">
+                    <div class="control-title">Vantilatör</div>
+                    <button onclick="updateValue('vantilator', true)" id="vantilator-on-button">Aç</button>
+                    <button onclick="updateValue('vantilator', false)" id="vantilator-off-button">Kapat</button>
+                </div>
+                
+                <div class="control-item">
+                    <div class="control-title">Pencere</div>
+                    <button onclick="updateValue('pencere', true)" id="pencere-on-button">Aç</button>
+                    <button onclick="updateValue('pencere', false)" id="pencere-off-button">Kapat</button>
+                </div>
+                
+                <div class="control-item">
+                    <div class="control-title">Isıtıcı</div>
+                    <button onclick="updateValue('isitici', true)" id="isitici-on-button">Aç</button>
+                    <button onclick="updateValue('isitici', false)" id="isitici-off-button">Kapat</button>
+                </div>
+                
+                <div class="control-item">
+                    <div class="control-title">Perde</div>
+                    <button onclick="updateValue('perde', true)" id="perde-on-button">Aç</button>
+                    <button onclick="updateValue('perde', false)" id="perde-off-button">Kapat</button>
+                </div>
+                
+                <div class="control-item">
+                    <div class="control-title">Ampul</div>
+                    <button onclick="updateValue('ampul', true)" id="ampul-on-button">Aç</button>
+                    <button onclick="updateValue('ampul', false)" id="ampul-off-button">Kapat</button>
+                </div>
+            </div>
+            
+            <!-- Otomatik Kontroller -->
+            <div class="control-panel">
+                <h3>Otomatik Kontrol</h3>
+                
+                <div class="control-item">
+                    <div class="control-title">Sıcaklık Oto Kontrol</div>
+                    <button onclick="updateValue('sicaklik_oto', true)" id="sicaklik-oto-on-button">Aç</button>
+                    <button onclick="updateValue('sicaklik_oto', false)" id="sicaklik-oto-off-button">Kapat</button>
+                </div>
+                
+                <div class="control-item">
+                    <div class="control-title">Işık Oto Kontrol</div>
+                    <button onclick="updateValue('isik_oto', true)" id="isik-oto-on-button">Aç</button>
+                    <button onclick="updateValue('isik_oto', false)" id="isik-oto-off-button">Kapat</button>
+                </div>
+                
+                <div class="control-item">
+                    <div class="control-title">Sıcaklık1 (Isıtıcı Eşiği)</div>
+                    <div class="temp-controls">
+                        <button onclick="adjustTemp('sicaklik1', -1)">-</button>
+                        <div class="temp-value" id="sicaklik1-value">{{ veri.sicaklik1 }}</div>
+                        <button onclick="adjustTemp('sicaklik1', 1)">+</button>
+                    </div>
+                </div>
+                
+                <div class="control-item">
+                    <div class="control-title">Sıcaklık2 (Normal Eşik)</div>
+                    <div class="temp-controls">
+                        <button onclick="adjustTemp('sicaklik2', -1)">-</button>
+                        <div class="temp-value" id="sicaklik2-value">{{ veri.sicaklik2 }}</div>
+                        <button onclick="adjustTemp('sicaklik2', 1)">+</button>
+                    </div>
+                </div>
+                
+                <div class="control-item">
+                    <div class="control-title">Sıcaklık3 (Pencere Eşiği)</div>
+                    <div class="temp-controls">
+                        <button onclick="adjustTemp('sicaklik3', -1)">-</button>
+                        <div class="temp-value" id="sicaklik3-value">{{ veri.sicaklik3 }}</div>
+                        <button onclick="adjustTemp('sicaklik3', 1)">+</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="status" id="status-message">Sistem hazır</div>
+    </div>
+    
+    <script>
+        // Sayfa yüklendiğinde başlangıç değerlerini ayarla
+        document.addEventListener('DOMContentLoaded', function() {
+            updateUI({{ veri|tojson }});
+        });
+        
+        // UI güncellemesi
+        function updateUI(data) {
+            // Değerleri güncelle
+            document.getElementById('sicaklik-value').textContent = data.sicaklik + '°C';
+            document.getElementById('isik-value').textContent = data.isik;
+            document.getElementById('vantilator-value').textContent = data.vantilator ? 'Açık' : 'Kapalı';
+            document.getElementById('pencere-value').textContent = data.pencere ? 'Açık' : 'Kapalı';
+            document.getElementById('isitici-value').textContent = data.isitici ? 'Açık' : 'Kapalı';
+            document.getElementById('kapi-value').textContent = data.kapi ? 'Açık' : 'Kapalı';
+            document.getElementById('perde-value').textContent = data.perde ? 'Açık' : 'Kapalı';
+            document.getElementById('ampul-value').textContent = data.ampul ? 'Açık' : 'Kapalı';
+            
+            // Sıcaklık değerleri
+            document.getElementById('sicaklik1-value').textContent = data.sicaklik1;
+            document.getElementById('sicaklik2-value').textContent = data.sicaklik2;
+            document.getElementById('sicaklik3-value').textContent = data.sicaklik3;
+            
+            // Aktif butonları güncelle
+            updateButtonStates('vantilator', data.vantilator);
+            updateButtonStates('pencere', data.pencere);
+            updateButtonStates('isitici', data.isitici);
+            updateButtonStates('perde', data.perde);
+            updateButtonStates('ampul', data.ampul);
+            updateButtonStates('sicaklik_oto', data.sicaklik_oto);
+            updateButtonStates('isik_oto', data.isik_oto);
+            
+            // Sıcaklık oto kontrolü açıkken ilgili butonları devre dışı bırak
+            const sicaklikKontrolButtons = ['vantilator', 'pencere', 'isitici'];
+            sicaklikKontrolButtons.forEach(item => {
+                const onButton = document.getElementById(`${item}-on-button`);
+                const offButton = document.getElementById(`${item}-off-button`);
+                if (data.sicaklik_oto) {
+                    onButton.classList.add('disabled');
+                    offButton.classList.add('disabled');
+                } else {
+                    onButton.classList.remove('disabled');
+                    offButton.classList.remove('disabled');
+                }
+            });
+            
+            // Işık oto kontrolü açıkken ilgili butonları devre dışı bırak
+            const isikKontrolButtons = ['perde', 'ampul'];
+            isikKontrolButtons.forEach(item => {
+                const onButton = document.getElementById(`${item}-on-button`);
+                const offButton = document.getElementById(`${item}-off-button`);
+                if (data.isik_oto) {
+                    onButton.classList.add('disabled');
+                    offButton.classList.add('disabled');
+                } else {
+                    onButton.classList.remove('disabled');
+                    offButton.classList.remove('disabled');
+                }
+            });
+        }
+        
+        // Buton durumlarını güncelle
+        function updateButtonStates(name, value) {
+            // Sadece açık/kapalı düğmeleri olan kontroller için
+            const onButton = document.getElementById(`${name}-on-button`);
+            const offButton = document.getElementById(`${name}-off-button`);
+            
+            if (onButton && offButton) {
+                if (value) {
+                    onButton.classList.add('active');
+                    offButton.classList.remove('active');
+                } else {
+                    onButton.classList.remove('active');
+                    offButton.classList.add('active');
+                }
+            }
+        }
+        
+        // Değer güncelleme fonksiyonu
+        function updateValue(key, value) {
+            // Otomatik kontrol aktifken bazı butonları devre dışı bırak
+            if ((key === 'vantilator' || key === 'pencere' || key === 'isitici') && 
+                document.getElementById('sicaklik-oto-on-button').classList.contains('active')) {
+                setStatus('Sıcaklık otomatik kontrol açıkken bu değer değiştirilemez');
+                return;
+            }
+            
+            if ((key === 'perde' || key === 'ampul') && 
+                document.getElementById('isik-oto-on-button').classList.contains('active')) {
+                setStatus('Işık otomatik kontrol açıkken bu değer değiştirilemez');
+                return;
+            }
+            
+            // API'ye değer güncelleme isteği gönder
+            fetch('/api/veri', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({[key]: value})
+            })
+            .then(response => response.json())
+            .then(data => {
+                updateUI(data.veri);
+                setStatus(`${key} güncellendi`);
+            })
+            .catch(error => {
+                console.error('Hata:', error);
+                setStatus('Güncelleme başarısız oldu');
+            });
+        }
+        
+        // Sıcaklık ayarlama fonksiyonu
+        function adjustTemp(key, amount) {
+            const element = document.getElementById(`${key}-value`);
+            let currentValue = parseInt(element.textContent);
+            let newValue = currentValue + amount;
+            
+            // API'ye değer güncelleme isteği gönder
+            fetch('/api/veri', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({[key]: newValue})
+            })
+            .then(response => response.json())
+            .then(data => {
+                updateUI(data.veri);
+                setStatus(`${key} ${newValue} olarak güncellendi`);
+            })
+            .catch(error => {
+                console.error('Hata:', error);
+                setStatus('Güncelleme başarısız oldu');
+            });
+        }
+        
+        // Durum mesajı güncelleme
+        function setStatus(message) {
+            const statusElement = document.getElementById('status-message');
+            statusElement.textContent = message;
+            
+            // 3 saniye sonra mesajı temizle
+            setTimeout(() => {
+                statusElement.textContent = 'Sistem hazır';
+            }, 3000);
+        }
+        
+        // Her 5 saniyede bir otomatik güncelleme
+        setInterval(function() {
+            fetch('/api/veri')
+            .then(response => response.json())
+            .then(data => {
+                updateUI(data);
+            })
+            .catch(error => {
+                console.error('Güncelleme hatası:', error);
+            });
+        }, 5000);
+    </script>
+</body>
+</html>
