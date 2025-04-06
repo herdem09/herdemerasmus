@@ -1,35 +1,177 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Kontrol Paneli</title>
+    <title>Akıllı Ev Kontrol Sistemi</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {font-family:Arial; margin:0; padding:0; background:#f4f4f4;}
+        .container {width:90%; max-width:800px; margin:20px auto; background:white; padding:20px; border-radius:5px; box-shadow:0 0 10px rgba(0,0,0,0.1);}
+        h1 {text-align:center; color:#333;}
+        .status {display:flex; flex-wrap:wrap; margin-bottom:20px; border-bottom:1px solid #ddd; padding-bottom:15px;}
+        .status-item {flex:1; min-width:180px; margin:5px; padding:10px; background:#f9f9f9; border-radius:5px;}
+        .status-label {font-weight:bold;}
+        .form-group {margin:10px 0;}
+        label {display:inline-block; width:120px; font-weight:bold;}
+        input[type=number], select {width:150px; padding:5px;}
+        button {background-color:#4CAF50; color:white; padding:10px 15px; border:none; border-radius:4px; cursor:pointer; margin-top:10px;}
+        button:hover {background-color:#45a049;}
+        .logout {position:absolute; top:10px; right:10px; background-color:#f44336;}
+        .logout:hover {background-color:#d32f2f;}
+        .disabled {opacity:0.5; cursor:not-allowed;}
+    </style>
 </head>
 <body>
-    <h2>Durum Paneli</h2>
-    <ul>
-        {% for key, value in state.items() %}
-            <li><strong>{{ key }}</strong>: {{ value }}</li>
-        {% endfor %}
-    </ul>
-
-    <h2>Değiştir</h2>
-    <form action="/update" method="post">
-        {% for key, value in state.items() %}
-            {% if key not in ['sicaklik', 'isik'] %}
-                <label>{{ key }}:</label><br>
-                {% if value is boolean %}
-                    <select name="{{ key }}">
-                        <option value="true" {% if value %}selected{% endif %}>True</option>
-                        <option value="false" {% if not value %}selected{% endif %}>False</option>
-                    </select>
-                {% else %}
-                    <input type="number" name="{{ key }}" value="{{ value }}">
-                {% endif %}
-                <br><br>
-            {% endif %}
-        {% endfor %}
-        <input type="submit" value="Güncelle">
-    </form>
-
-    <br><a href="/logout">Çıkış</a>
+    <div class="container">
+        <a href="/logout"><button class="logout">Çıkış</button></a>
+        <h1>Akıllı Ev Kontrol Sistemi</h1>
+        
+        <!-- Status Display -->
+        <h2>Durum</h2>
+        <div class="status">
+            <div class="status-item">
+                <div class="status-label">Sıcaklık:</div>
+                <div>{{ data.sicaklik }} °C</div>
+            </div>
+            <div class="status-item">
+                <div class="status-label">Işık:</div>
+                <div>{{ data.isik }} ({% if data.isik == 0 %}Karanlık{% else %}Aydınlık{% endif %})</div>
+            </div>
+            <div class="status-item">
+                <div class="status-label">Vantilatör:</div>
+                <div>{% if data.vantilator %}Açık{% else %}Kapalı{% endif %}</div>
+            </div>
+            <div class="status-item">
+                <div class="status-label">Pencere:</div>
+                <div>{% if data.pencere %}Açık{% else %}Kapalı{% endif %}</div>
+            </div>
+            <div class="status-item">
+                <div class="status-label">Isıtıcı:</div>
+                <div>{% if data.isitici %}Açık{% else %}Kapalı{% endif %}</div>
+            </div>
+            <div class="status-item">
+                <div class="status-label">Kapı:</div>
+                <div>{% if data.kapi %}Açık{% else %}Kapalı{% endif %}</div>
+            </div>
+            <div class="status-item">
+                <div class="status-label">Perde:</div>
+                <div>{% if data.perde %}Kapalı{% else %}Açık{% endif %}</div>
+            </div>
+            <div class="status-item">
+                <div class="status-label">Ampul:</div>
+                <div>{% if data.ampul %}Açık{% else %}Kapalı{% endif %}</div>
+            </div>
+        </div>
+        
+        <!-- Control Form -->
+        <h2>Kontrol</h2>
+        <form method="post" action="/update">
+            <!-- Auto Controls -->
+            <div class="form-group">
+                <label for="sicaklik_oto">Sıcaklık Oto:</label>
+                <select name="sicaklik_oto" id="sicaklik_oto" onchange="this.form.submit()">
+                    <option value="true" {% if data.sicaklik_oto %}selected{% endif %}>Açık</option>
+                    <option value="false" {% if not data.sicaklik_oto %}selected{% endif %}>Kapalı</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="isik_oto">Işık Oto:</label>
+                <select name="isik_oto" id="isik_oto" onchange="this.form.submit()">
+                    <option value="true" {% if data.isik_oto %}selected{% endif %}>Açık</option>
+                    <option value="false" {% if not data.isik_oto %}selected{% endif %}>Kapalı</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="kapioto">Kapı Oto:</label>
+                <select name="kapioto" id="kapioto" onchange="this.form.submit()">
+                    <option value="true" {% if data.kapioto %}selected{% endif %}>Açık</option>
+                    <option value="false" {% if not data.kapioto %}selected{% endif %}>Kapalı</option>
+                </select>
+            </div>
+            
+            <!-- Manual Controls -->
+            <div class="form-group {% if data.sicaklik_oto %}disabled{% endif %}">
+                <label for="vantilator">Vantilatör:</label>
+                <select name="vantilator" id="vantilator" {% if data.sicaklik_oto %}disabled{% endif %}>
+                    <option value="true" {% if data.vantilator %}selected{% endif %}>Açık</option>
+                    <option value="false" {% if not data.vantilator %}selected{% endif %}>Kapalı</option>
+                </select>
+            </div>
+            
+            <div class="form-group {% if data.sicaklik_oto %}disabled{% endif %}">
+                <label for="pencere">Pencere:</label>
+                <select name="pencere" id="pencere" {% if data.sicaklik_oto %}disabled{% endif %}>
+                    <option value="true" {% if data.pencere %}selected{% endif %}>Açık</option>
+                    <option value="false" {% if not data.pencere %}selected{% endif %}>Kapalı</option>
+                </select>
+            </div>
+            
+            <div class="form-group {% if data.sicaklik_oto %}disabled{% endif %}">
+                <label for="isitici">Isıtıcı:</label>
+                <select name="isitici" id="isitici" {% if data.sicaklik_oto %}disabled{% endif %}>
+                    <option value="true" {% if data.isitici %}selected{% endif %}>Açık</option>
+                    <option value="false" {% if not data.isitici %}selected{% endif %}>Kapalı</option>
+                </select>
+            </div>
+            
+            <div class="form-group {% if data.kapioto %}disabled{% endif %}">
+                <label for="kapi">Kapı:</label>
+                <select name="kapi" id="kapi" {% if data.kapioto %}disabled{% endif %}>
+                    <option value="true" {% if data.kapi %}selected{% endif %}>Açık</option>
+                    <option value="false" {% if not data.kapi %}selected{% endif %}>Kapalı</option>
+                </select>
+            </div>
+            
+            <div class="form-group {% if data.isik_oto %}disabled{% endif %}">
+                <label for="perde">Perde:</label>
+                <select name="perde" id="perde" {% if data.isik_oto %}disabled{% endif %}>
+                    <option value="true" {% if data.perde %}selected{% endif %}>Kapalı</option>
+                    <option value="false" {% if not data.perde %}selected{% endif %}>Açık</option>
+                </select>
+            </div>
+            
+            <div class="form-group {% if data.isik_oto %}disabled{% endif %}">
+                <label for="ampul">Ampul:</label>
+                <select name="ampul" id="ampul" {% if data.isik_oto %}disabled{% endif %}>
+                    <option value="true" {% if data.ampul %}selected{% endif %}>Açık</option>
+                    <option value="false" {% if not data.ampul %}selected{% endif %}>Kapalı</option>
+                </select>
+            </div>
+            
+            <!-- Temperature Settings -->
+            <div class="form-group">
+                <label for="sicaklik1">Sıcaklık 1:</label>
+                <input type="number" name="sicaklik1" id="sicaklik1" value="{{ data.sicaklik1 }}">
+            </div>
+            
+            <div class="form-group">
+                <label for="sicaklik2">Sıcaklık 2:</label>
+                <input type="number" name="sicaklik2" id="sicaklik2" value="{{ data.sicaklik2 }}">
+            </div>
+            
+            <div class="form-group">
+                <label for="sicaklik3">Sıcaklık 3:</label>
+                <input type="number" name="sicaklik3" id="sicaklik3" value="{{ data.sicaklik3 }}">
+            </div>
+            
+            <button type="submit">Değişiklikleri Kaydet</button>
+        </form>
+    </div>
+    <script>
+        function updateDisabledStatus() {
+            var sicaklikOto = document.getElementById('sicaklik_oto').value === 'true';
+            var isikOto = document.getElementById('isik_oto').value === 'true';
+            var kapiOto = document.getElementById('kapioto').value === 'true';
+            
+            document.getElementById('vantilator').disabled = sicaklikOto;
+            document.getElementById('pencere').disabled = sicaklikOto;
+            document.getElementById('isitici').disabled = sicaklikOto;
+            document.getElementById('perde').disabled = isikOto;
+            document.getElementById('ampul').disabled = isikOto;
+            document.getElementById('kapi').disabled = kapiOto;
+        }
+        window.onload = updateDisabledStatus;
+    </script>
 </body>
 </html>
