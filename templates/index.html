@@ -1,177 +1,236 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Akıllı Ev Kontrol Sistemi</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-        body {font-family:Arial; margin:0; padding:0; background:#f4f4f4;}
-        .container {width:90%; max-width:800px; margin:20px auto; background:white; padding:20px; border-radius:5px; box-shadow:0 0 10px rgba(0,0,0,0.1);}
-        h1 {text-align:center; color:#333;}
-        .status {display:flex; flex-wrap:wrap; margin-bottom:20px; border-bottom:1px solid #ddd; padding-bottom:15px;}
-        .status-item {flex:1; min-width:180px; margin:5px; padding:10px; background:#f9f9f9; border-radius:5px;}
-        .status-label {font-weight:bold;}
-        .form-group {margin:10px 0;}
-        label {display:inline-block; width:120px; font-weight:bold;}
-        input[type=number], select {width:150px; padding:5px;}
-        button {background-color:#4CAF50; color:white; padding:10px 15px; border:none; border-radius:4px; cursor:pointer; margin-top:10px;}
-        button:hover {background-color:#45a049;}
-        .logout {position:absolute; top:10px; right:10px; background-color:#f44336;}
-        .logout:hover {background-color:#d32f2f;}
-        .disabled {opacity:0.5; cursor:not-allowed;}
-    </style>
-</head>
-<body>
-    <div class="container">
-        <a href="/logout"><button class="logout">Çıkış</button></a>
-        <h1>Akıllı Ev Kontrol Sistemi</h1>
-        
-        <!-- Status Display -->
-        <h2>Durum</h2>
-        <div class="status">
+{% extends 'base.html' %}
+
+{% block title %}Ana Sayfa - Akıllı Ev Kontrol Sistemi{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <div class="dashboard-header">
+        <h2>Ev Kontrol Merkezi</h2>
+        <div class="status-indicators">
             <div class="status-item">
-                <div class="status-label">Sıcaklık:</div>
-                <div>{{ data.sicaklik }} °C</div>
+                <i class="fas fa-thermometer-half"></i>
+                <span id="current-temp">{{ data.sicaklik }}°C</span>
             </div>
             <div class="status-item">
-                <div class="status-label">Işık:</div>
-                <div>{{ data.isik }} ({% if data.isik == 0 %}Karanlık{% else %}Aydınlık{% endif %})</div>
-            </div>
-            <div class="status-item">
-                <div class="status-label">Vantilatör:</div>
-                <div>{% if data.vantilator %}Açık{% else %}Kapalı{% endif %}</div>
-            </div>
-            <div class="status-item">
-                <div class="status-label">Pencere:</div>
-                <div>{% if data.pencere %}Açık{% else %}Kapalı{% endif %}</div>
-            </div>
-            <div class="status-item">
-                <div class="status-label">Isıtıcı:</div>
-                <div>{% if data.isitici %}Açık{% else %}Kapalı{% endif %}</div>
-            </div>
-            <div class="status-item">
-                <div class="status-label">Kapı:</div>
-                <div>{% if data.kapi %}Açık{% else %}Kapalı{% endif %}</div>
-            </div>
-            <div class="status-item">
-                <div class="status-label">Perde:</div>
-                <div>{% if data.perde %}Kapalı{% else %}Açık{% endif %}</div>
-            </div>
-            <div class="status-item">
-                <div class="status-label">Ampul:</div>
-                <div>{% if data.ampul %}Açık{% else %}Kapalı{% endif %}</div>
+                <i class="fas fa-sun"></i>
+                <span id="current-light">Işık: {{ data.isik }}</span>
             </div>
         </div>
-        
-        <!-- Control Form -->
-        <h2>Kontrol</h2>
-        <form method="post" action="/update">
-            <!-- Auto Controls -->
-            <div class="form-group">
-                <label for="sicaklik_oto">Sıcaklık Oto:</label>
-                <select name="sicaklik_oto" id="sicaklik_oto" onchange="this.form.submit()">
-                    <option value="true" {% if data.sicaklik_oto %}selected{% endif %}>Açık</option>
-                    <option value="false" {% if not data.sicaklik_oto %}selected{% endif %}>Kapalı</option>
-                </select>
-            </div>
-            
-            <div class="form-group">
-                <label for="isik_oto">Işık Oto:</label>
-                <select name="isik_oto" id="isik_oto" onchange="this.form.submit()">
-                    <option value="true" {% if data.isik_oto %}selected{% endif %}>Açık</option>
-                    <option value="false" {% if not data.isik_oto %}selected{% endif %}>Kapalı</option>
-                </select>
-            </div>
-            
-            <div class="form-group">
-                <label for="kapioto">Kapı Oto:</label>
-                <select name="kapioto" id="kapioto" onchange="this.form.submit()">
-                    <option value="true" {% if data.kapioto %}selected{% endif %}>Açık</option>
-                    <option value="false" {% if not data.kapioto %}selected{% endif %}>Kapalı</option>
-                </select>
-            </div>
-            
-            <!-- Manual Controls -->
-            <div class="form-group {% if data.sicaklik_oto %}disabled{% endif %}">
-                <label for="vantilator">Vantilatör:</label>
-                <select name="vantilator" id="vantilator" {% if data.sicaklik_oto %}disabled{% endif %}>
-                    <option value="true" {% if data.vantilator %}selected{% endif %}>Açık</option>
-                    <option value="false" {% if not data.vantilator %}selected{% endif %}>Kapalı</option>
-                </select>
-            </div>
-            
-            <div class="form-group {% if data.sicaklik_oto %}disabled{% endif %}">
-                <label for="pencere">Pencere:</label>
-                <select name="pencere" id="pencere" {% if data.sicaklik_oto %}disabled{% endif %}>
-                    <option value="true" {% if data.pencere %}selected{% endif %}>Açık</option>
-                    <option value="false" {% if not data.pencere %}selected{% endif %}>Kapalı</option>
-                </select>
-            </div>
-            
-            <div class="form-group {% if data.sicaklik_oto %}disabled{% endif %}">
-                <label for="isitici">Isıtıcı:</label>
-                <select name="isitici" id="isitici" {% if data.sicaklik_oto %}disabled{% endif %}>
-                    <option value="true" {% if data.isitici %}selected{% endif %}>Açık</option>
-                    <option value="false" {% if not data.isitici %}selected{% endif %}>Kapalı</option>
-                </select>
-            </div>
-            
-            <div class="form-group {% if data.kapioto %}disabled{% endif %}">
-                <label for="kapi">Kapı:</label>
-                <select name="kapi" id="kapi" {% if data.kapioto %}disabled{% endif %}>
-                    <option value="true" {% if data.kapi %}selected{% endif %}>Açık</option>
-                    <option value="false" {% if not data.kapi %}selected{% endif %}>Kapalı</option>
-                </select>
-            </div>
-            
-            <div class="form-group {% if data.isik_oto %}disabled{% endif %}">
-                <label for="perde">Perde:</label>
-                <select name="perde" id="perde" {% if data.isik_oto %}disabled{% endif %}>
-                    <option value="true" {% if data.perde %}selected{% endif %}>Kapalı</option>
-                    <option value="false" {% if not data.perde %}selected{% endif %}>Açık</option>
-                </select>
-            </div>
-            
-            <div class="form-group {% if data.isik_oto %}disabled{% endif %}">
-                <label for="ampul">Ampul:</label>
-                <select name="ampul" id="ampul" {% if data.isik_oto %}disabled{% endif %}>
-                    <option value="true" {% if data.ampul %}selected{% endif %}>Açık</option>
-                    <option value="false" {% if not data.ampul %}selected{% endif %}>Kapalı</option>
-                </select>
-            </div>
-            
-            <!-- Temperature Settings -->
-            <div class="form-group">
-                <label for="sicaklik1">Sıcaklık 1:</label>
-                <input type="number" name="sicaklik1" id="sicaklik1" value="{{ data.sicaklik1 }}">
-            </div>
-            
-            <div class="form-group">
-                <label for="sicaklik2">Sıcaklık 2:</label>
-                <input type="number" name="sicaklik2" id="sicaklik2" value="{{ data.sicaklik2 }}">
-            </div>
-            
-            <div class="form-group">
-                <label for="sicaklik3">Sıcaklık 3:</label>
-                <input type="number" name="sicaklik3" id="sicaklik3" value="{{ data.sicaklik3 }}">
-            </div>
-            
-            <button type="submit">Değişiklikleri Kaydet</button>
-        </form>
     </div>
-    <script>
-        function updateDisabledStatus() {
-            var sicaklikOto = document.getElementById('sicaklik_oto').value === 'true';
-            var isikOto = document.getElementById('isik_oto').value === 'true';
-            var kapiOto = document.getElementById('kapioto').value === 'true';
-            
-            document.getElementById('vantilator').disabled = sicaklikOto;
-            document.getElementById('pencere').disabled = sicaklikOto;
-            document.getElementById('isitici').disabled = sicaklikOto;
-            document.getElementById('perde').disabled = isikOto;
-            document.getElementById('ampul').disabled = isikOto;
-            document.getElementById('kapi').disabled = kapiOto;
+
+    <div class="dashboard-grid">
+        <!-- Sıcaklık Kontrol Kartı -->
+        <div class="dashboard-card">
+            <div class="card-header">
+                <h3><i class="fas fa-temperature-high"></i> Sıcaklık Kontrolü</h3>
+            </div>
+            <div class="card-content">
+                <form action="{{ url_for('update') }}" method="post" class="control-form" id="tempControlForm">
+                    <div class="form-control">
+                        <label for="sicaklik">Sıcaklık Ayarı:</label>
+                        <div class="range-control">
+                            <input type="range" id="sicaklik" name="sicaklik" min="15" max="30" value="{{ data.sicaklik }}" step="1">
+                            <span class="range-value">{{ data.sicaklik }}°C</span>
+                        </div>
+                    </div>
+
+                    <div class="control-switches">
+                        <div class="switch-control">
+                            <label for="sicaklik_oto">
+                                <input type="checkbox" id="sicaklik_oto" name="sicaklik_oto" value="true" {% if data.sicaklik_oto %}checked{% endif %} onchange="document.getElementById('tempControlForm').submit()">
+                                <span class="switch-label">Otomatik Kontrol</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="auto-settings {% if not data.sicaklik_oto %}hidden{% endif %}" id="sicaklikOtoSettings">
+                        <h4>Otomatik Sıcaklık Eşikleri</h4>
+                        <div class="threshold-controls">
+                            <div class="threshold-item">
+                                <label for="sicaklik1">Isıtıcı Eşiği:</label>
+                                <div class="threshold-input">
+                                    <input type="number" id="sicaklik1" name="sicaklik1" min="15" max="30" value="{{ data.sicaklik1 }}">
+                                    <span>°C</span>
+                                </div>
+                            </div>
+                            <div class="threshold-item">
+                                <label for="sicaklik2">Normal Eşiği:</label>
+                                <div class="threshold-input">
+                                    <input type="number" id="sicaklik2" name="sicaklik2" min="15" max="30" value="{{ data.sicaklik2 }}">
+                                    <span>°C</span>
+                                </div>
+                            </div>
+                            <div class="threshold-item">
+                                <label for="sicaklik3">Pencere Eşiği:</label>
+                                <div class="threshold-input">
+                                    <input type="number" id="sicaklik3" name="sicaklik3" min="15" max="30" value="{{ data.sicaklik3 }}">
+                                    <span>°C</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-sm">Eşikleri Güncelle</button>
+                    </div>
+
+                    <div class="manual-controls {% if data.sicaklik_oto %}disabled{% endif %}">
+                        <h4>Manuel Kontroller</h4>
+                        <div class="button-controls">
+                            <button type="submit" name="isitici" value="{{ 'false' if data.isitici else 'true' }}" class="control-btn {{ 'active' if data.isitici else '' }}" {{ 'disabled' if data.sicaklik_oto else '' }}>
+                                <i class="fas fa-fire"></i> Isıtıcı
+                            </button>
+                            <button type="submit" name="vantilator" value="{{ 'false' if data.vantilator else 'true' }}" class="control-btn {{ 'active' if data.vantilator else '' }}" {{ 'disabled' if data.sicaklik_oto else '' }}>
+                                <i class="fas fa-fan"></i> Vantilatör
+                            </button>
+                            <button type="submit" name="pencere" value="{{ 'false' if data.pencere else 'true' }}" class="control-btn {{ 'active' if data.pencere else '' }}" {{ 'disabled' if data.sicaklik_oto else '' }}>
+                                <i class="fas fa-window-maximize"></i> Pencere
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Işık Kontrol Kartı -->
+        <div class="dashboard-card">
+            <div class="card-header">
+                <h3><i class="fas fa-lightbulb"></i> Işık Kontrolü</h3>
+            </div>
+            <div class="card-content">
+                <form action="{{ url_for('update') }}" method="post" class="control-form" id="lightControlForm">
+                    <div class="form-control">
+                        <label for="isik">Işık Seviyesi:</label>
+                        <div class="range-control">
+                            <input type="range" id="isik" name="isik" min="0" max="10" value="{{ data.isik }}" step="1">
+                            <span class="range-value">{{ data.isik }}</span>
+                        </div>
+                    </div>
+
+                    <div class="control-switches">
+                        <div class="switch-control">
+                            <label for="isik_oto">
+                                <input type="checkbox" id="isik_oto" name="isik_oto" value="true" {% if data.isik_oto %}checked{% endif %} onchange="document.getElementById('lightControlForm').submit()">
+                                <span class="switch-label">Otomatik Işık Kontrolü</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="manual-controls {% if data.isik_oto %}disabled{% endif %}">
+                        <h4>Manuel Kontroller</h4>
+                        <div class="button-controls">
+                            <button type="submit" name="perde" value="{{ 'false' if data.perde else 'true' }}" class="control-btn {{ 'active' if data.perde else '' }}" {{ 'disabled' if data.isik_oto else '' }}>
+                                <i class="fas fa-blind"></i> Perde
+                            </button>
+                            <button type="submit" name="ampul" value="{{ 'false' if data.ampul else 'true' }}" class="control-btn {{ 'active' if data.ampul else '' }}" {{ 'disabled' if data.isik_oto else '' }}>
+                                <i class="fas fa-lightbulb"></i> Ampul
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Kapı Kontrol Kartı -->
+        <div class="dashboard-card">
+            <div class="card-header">
+                <h3><i class="fas fa-door-open"></i> Kapı Kontrolü</h3>
+            </div>
+            <div class="card-content">
+                <form action="{{ url_for('update') }}" method="post" class="control-form" id="doorControlForm">
+                    <div class="door-status-container">
+                        <div class="door-status {{ 'open' if data.kapi else 'closed' }}">
+                            <i class="fas fa-{{ 'door-open' if data.kapi else 'door-closed' }}"></i>
+                            <span>Kapı {{ 'Açık' if data.kapi else 'Kapalı' }}</span>
+                        </div>
+                    </div>
+
+                    <div class="control-switches">
+                        <div class="switch-control">
+                            <label for="kapioto">
+                                <input type="checkbox" id="kapioto" name="kapioto" value="true" {% if data.kapioto %}checked{% endif %} onchange="document.getElementById('doorControlForm').submit()">
+                                <span class="switch-label">Otomatik Kapanma (5sn)</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="manual-controls">
+                        <div class="button-controls">
+                            <button type="submit" name="kapi" value="true" class="control-btn {{ 'disabled' if data.kapi else '' }}" {{ 'disabled' if data.kapi else '' }}>
+                                <i class="fas fa-door-open"></i> Kapıyı Aç
+                            </button>
+                            <button type="submit" name="kapi" value="false" class="control-btn {{ 'disabled' if not data.kapi else '' }}" {{ 'disabled' if not data.kapi else '' }}>
+                                <i class="fas fa-door-closed"></i> Kapıyı Kapat
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Sistem Durumu Kartı -->
+        <div class="dashboard-card status-card">
+            <div class="card-header">
+                <h3><i class="fas fa-info-circle"></i> Sistem Durumu</h3>
+            </div>
+            <div class="card-content">
+                <div class="status-grid">
+                    <div class="status-tile {{ 'active' if data.isitici else '' }}">
+                        <i class="fas fa-fire"></i>
+                        <span>Isıtıcı</span>
+                    </div>
+                    <div class="status-tile {{ 'active' if data.vantilator else '' }}">
+                        <i class="fas fa-fan"></i>
+                        <span>Vantilatör</span>
+                    </div>
+                    <div class="status-tile {{ 'active' if data.pencere else '' }}">
+                        <i class="fas fa-window-maximize"></i>
+                        <span>Pencere</span>
+                    </div>
+                    <div class="status-tile {{ 'active' if data.kapi else '' }}">
+                        <i class="fas fa-door-open"></i>
+                        <span>Kapı</span>
+                    </div>
+                    <div class="status-tile {{ 'active' if data.perde else '' }}">
+                        <i class="fas fa-blind"></i>
+                        <span>Perde</span>
+                    </div>
+                    <div class="status-tile {{ 'active' if data.ampul else '' }}">
+                        <i class="fas fa-lightbulb"></i>
+                        <span>Ampul</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Sıcaklık ayarı için
+    const tempSlider = document.getElementById('sicaklik');
+    const tempValue = tempSlider.nextElementSibling;
+    
+    tempSlider.addEventListener('input', function() {
+        tempValue.textContent = this.value + '°C';
+    });
+    
+    // Işık ayarı için
+    const lightSlider = document.getElementById('isik');
+    const lightValue = lightSlider.nextElementSibling;
+    
+    lightSlider.addEventListener('input', function() {
+        lightValue.textContent = this.value;
+    });
+    
+    // Otomatik sıcaklık ayarları görünürlüğü
+    const sicaklikOto = document.getElementById('sicaklik_oto');
+    const sicaklikOtoSettings = document.getElementById('sicaklikOtoSettings');
+    
+    sicaklikOto.addEventListener('change', function() {
+        if(this.checked) {
+            sicaklikOtoSettings.classList.remove('hidden');
+        } else {
+            sicaklikOtoSettings.classList.add('hidden');
         }
-        window.onload = updateDisabledStatus;
-    </script>
-</body>
-</html>
+    });
+</script>
+{% endblock %}
