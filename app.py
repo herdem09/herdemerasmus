@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template, redirect, session, jsonify
+from flask import Flask, request, render_template, redirect, session, jsonify, url_for
 import time
 import threading
 import os
@@ -6,7 +6,7 @@ from functools import wraps
 import json
 
 app = Flask(__name__)
-app.secret_key = os.urandom(24)
+app.secret_key = os.environ.get('SECRET_KEY', os.urandom(24))
 
 # Global variables
 data = {
@@ -26,14 +26,14 @@ data = {
     "sicaklik3": 26
 }
 
-api_key = "gizli_anahtar123"  # API anahtarı
+api_key = os.environ.get('API_KEY', "gizli_anahtar123")  # API anahtarı
 
 # Login required decorator
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if 'logged_in' not in session:
-            return redirect('/login')
+            return redirect(url_for('login'))
         return f(*args, **kwargs)
     return decorated_function
 
@@ -90,7 +90,7 @@ def login():
         
         if username == 'herdem' and password == '1940':
             session['logged_in'] = True
-            return redirect('/')
+            return redirect(url_for('index'))
         else:
             return render_template('login.html', error='Geçersiz kullanıcı adı veya şifre')
     
@@ -100,7 +100,7 @@ def login():
 @app.route('/logout')
 def logout():
     session.pop('logged_in', None)
-    return redirect('/login')
+    return redirect(url_for('login'))
 
 # Main page
 @app.route('/')
@@ -119,7 +119,7 @@ def update():
             value = request.form[key]
             
             # Type conversion
-            if key in ["sicaklik", "sicaklik1", "sicaklik2", "sicaklik3"]:
+            if key in ["sicaklik", "isik", "sicaklik1", "sicaklik2", "sicaklik3"]:
                 value = int(value)
             elif key in ["vantilator", "pencere", "isitici", "kapi", "perde", "ampul", "sicaklik_oto", "isik_oto", "kapioto"]:
                 value = (value.lower() == 'true')
@@ -137,11 +137,11 @@ def update():
             
             # Special case for door
             if key == "kapi" and value == True:
-                threading.Thread(target=auto_close_door).start()
+                threading.Thread(target=auto_close_door, daemon=True).start()
     
     update_climate_control()
     update_light_control()
-    return redirect('/')
+    return redirect(url_for('index'))
 
 # API Endpoints for Python and ESP clients
 @app.route('/api/data', methods=['GET'])
@@ -179,7 +179,7 @@ def api_update():
             
             # Special case for door
             if key == "kapi" and value == True:
-                threading.Thread(target=auto_close_door).start()
+                threading.Thread(target=auto_close_door, daemon=True).start()
     
     update_climate_control()
     update_light_control()
