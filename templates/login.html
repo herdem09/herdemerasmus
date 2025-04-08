@@ -1,29 +1,40 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Akıllı Ev Kontrol - Giriş</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-        body {font-family:Arial; margin:0; padding:0; background:#f4f4f4;}
-        .container {width:300px; margin:100px auto; background:white; padding:20px; border-radius:5px; box-shadow:0 0 10px rgba(0,0,0,0.1);}
-        h1 {text-align:center; color:#333;}
-        input[type=text], input[type=password] {width:100%; padding:10px; margin:8px 0; display:inline-block; border:1px solid #ccc; border-radius:4px; box-sizing:border-box;}
-        button {width:100%; background-color:#4CAF50; color:white; padding:14px 20px; margin:8px 0; border:none; border-radius:4px; cursor:pointer;}
-        button:hover {background-color:#45a049;}
-        .error {color:red; text-align:center;}
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>Akıllı Ev Kontrol</h1>
-        <form method="post">
-            {% if error %}
-                <p class="error">{{ error }}</p>
-            {% endif %}
-            <input type="text" name="username" placeholder="Kullanıcı Adı" required>
-            <input type="password" name="password" placeholder="Şifre" required>
-            <button type="submit">Giriş</button>
+{% extends 'base.html' %}
+
+{% block title %}Giriş - Akıllı Ev Kontrol Sistemi{% endblock %}
+
+{% block content %}
+<div class="login-container">
+    <div class="login-box">
+        <div class="login-header">
+            <i class="fas fa-user-lock"></i>
+            <h2>Giriş Yap</h2>
+        </div>
+        
+        {% if error %}
+        <div class="alert alert-error">
+            <i class="fas fa-exclamation-circle"></i> {{ error }}
+        </div>
+        {% endif %}
+        
+        <form action="{{ url_for('login') }}" method="post">
+            <div class="form-group">
+                <label for="username">
+                    <i class="fas fa-user"></i> Kullanıcı Adı
+                </label>
+                <input type="text" id="username" name="username" required autofocus>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">
+                    <i class="fas fa-lock"></i> Şifre
+                </label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            
+            <button type="submit" class="btn btn-primary btn-block">
+                <i class="fas fa-sign-in-alt"></i> Giriş Yap
+            </button>
         </form>
     </div>
-</body>
-</html>
+</div>
+{% endblock %}
